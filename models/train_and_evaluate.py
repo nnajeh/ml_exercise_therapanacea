@@ -1,9 +1,7 @@
-
+from bib import *
 from data.data_loader import get_data_loaders
 
-train_img_dir = './ml_exercise_therapanacea/train_img/'
-val_img_dir = './ml_exercise_therapanacea/val_img/'
-train_labels_file = './ml_exercise_therapanacea/label_train.txt'
+
 
 def train_model(train_loader, num_epochs=10, learning_rate=0.001):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
