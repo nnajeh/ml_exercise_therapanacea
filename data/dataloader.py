@@ -27,7 +27,8 @@ class ImageDataset(Dataset):
         else:
             return image
 
-def get_data_loaders(train_img_dir, train_labels_file, val_img_dir, batch_size=32):
+        
+def get_data_loaders(train_img_dir, train_labels_file, val_img_dir, batch_size=256):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
@@ -37,7 +38,8 @@ def get_data_loaders(train_img_dir, train_labels_file, val_img_dir, batch_size=3
     train_dataset = ImageDataset(train_img_dir, train_labels_file, transform=transform)
     val_dataset = ImageDataset(val_img_dir, transform=transform)
 
-   _loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
 
     return train_loader, val_loader
