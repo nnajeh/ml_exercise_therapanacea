@@ -2,64 +2,89 @@ from bib import *
 from data.data_loader import get_data_loaders
 
 
-
 def train_model(train_loader, num_epochs=10, learning_rate=0.001):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Training on device: {device}")
-
+    
+    # Load the pretrained ResNet18 model
     model = models.resnet18(pretrained=True)
+
+    # Replace the final classification layer with a binary output layer
     model.fc = nn.Linear(model.fc.in_features, 1)
     model = model.to(device)
 
+    # Binary classification loss function 
     criterion = nn.BCEWithLogitsLoss()
+
+    # Adam optimizer for weight updates
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    # The training mode
     model.train()
     for epoch in range(num_epochs):
         running_loss = 0.0
         total_batches = len(train_loader)
         print(f"\nEpoch {epoch+1}/{num_epochs}")
 
+        # Iterate over mini-batches
         for batch_idx, (inputs, labels) in enumerate(train_loader):
+            # Move data to the selected device
             inputs, labels = inputs.to(device), labels.to(device).float().unsqueeze(1)
+
+            # Reset gradients
             optimizer.zero_grad()
+
+            # Forward pass
             outputs = model(inputs)
+
+            # Compute loss
             loss = criterion(outputs, labels)
+
+            # Backward pass
             loss.backward()
+
+            # Update weights
             optimizer.step()
+
+            # Accumulate loss
             running_loss += loss.item() * inputs.size(0)
 
+            # Display progress every 10 batches
             if (batch_idx + 1) % 10 == 0 or (batch_idx + 1) == total_batches:
                 print(f"  Batch {batch_idx+1}/{total_batches} - Loss: {loss.item():.4f}")
 
+        # Print average loss for the epoch
         epoch_loss = running_loss / len(train_loader.dataset)
         print(f"Epoch {epoch+1} completed. Average Loss: {epoch_loss:.4f}")
 
-    torch.save(model.state_dict(), './resnet18.pth')
-    print(" Model saved to './resnet18.pth'")
+    # Save the trained model
+    torch.save(model.state_dict(), './mymodel.pth')
+    print(" Model saved to './mymodel.pth'")
 
 def predict(val_loader):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Predicting on device: {device}")
 
+    # Load the same model architecture and weights
     model = models.resnet18()
     model.fc = nn.Linear(model.fc.in_features, 1)
-    model.load_state_dict(torch.load('./resnet18.pth'))
+    model.load_state_dict(torch.load('./mymodel.pth'))
     model = model.to(device)
-    model.eval()
+    model.eval()  # Set model to evaluation mode
 
     predictions = []
     print("Generating predictions...")
+
+    # Disable gradient computation for faster inference
     with torch.no_grad():
         for batch_idx, inputs in enumerate(val_loader):
             inputs = inputs.to(device)
             outputs = model(inputs)
+
+            # Apply sigmoid to get probabilities
             preds = torch.sigmoid(outputs).cpu().numpy()
             predictions.extend(preds)
 
             if (batch_idx + 1) % 10 == 0 or (batch_idx + 1) == len(val_loader):
                 print(f"  Processed batch {batch_idx+1}/{len(val_loader)}")
 
+    # Write binary predictions to a text file
     with open('./label_val.txt', 'w') as f:
         for pred in predictions:
             f.write(f"{int(pred > 0.5)}\n")
