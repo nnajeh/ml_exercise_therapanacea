@@ -2,7 +2,9 @@ from  bib import *
 from models import *
 from data.data_loader import get_data_loaders
 
-
+# Détection automatique du périphérique (GPU si disponible, sinon CPU)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Training on device: {device}")
 
 # path to train and valid datasets
 train_img_dir = './ml_exercise_therapanacea/train_img/'
@@ -11,7 +13,6 @@ train_labels_file = './ml_exercise_therapanacea/label_train.txt'
 
 
 if __name__ == '__main__':
-
     # path to train and valid datasets
     train_img_dir = './ml_exercise_therapanacea/train_img/'
     val_img_dir = './ml_exercise_therapanacea/val_img/'
