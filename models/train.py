@@ -59,34 +59,3 @@ def train_model(train_loader, num_epochs=10, learning_rate=0.001):
     torch.save(model.state_dict(), './mymodel.pth')
     print(" Model saved to './mymodel.pth'")
 
-def predict(val_loader):
-
-    # Load the same model architecture and weights
-    model = models.resnet18()
-    model.fc = nn.Linear(model.fc.in_features, 1)
-    model.load_state_dict(torch.load('./mymodel.pth'))
-    model = model.to(device)
-    model.eval()  # Set model to evaluation mode
-
-    predictions = []
-    print("Generating predictions...")
-
-    # Disable gradient computation for faster inference
-    with torch.no_grad():
-        for batch_idx, inputs in enumerate(val_loader):
-            inputs = inputs.to(device)
-            outputs = model(inputs)
-
-            # Apply sigmoid to get probabilities
-            preds = torch.sigmoid(outputs).cpu().numpy()
-            predictions.extend(preds)
-
-            if (batch_idx + 1) % 10 == 0 or (batch_idx + 1) == len(val_loader):
-                print(f"  Processed batch {batch_idx+1}/{len(val_loader)}")
-
-    # Write binary predictions to a text file
-    with open('./label_val.txt', 'w') as f:
-        for pred in predictions:
-            f.write(f"{int(pred > 0.5)}\n")
-
-    print(" Predictions saved to './label_val.txt'")
