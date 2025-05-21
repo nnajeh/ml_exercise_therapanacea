@@ -32,26 +32,21 @@ def train_model(train_loader, num_epochs=10, learning_rate=0.001):
             # Reset gradients
             optimizer.zero_grad()
 
-            # Forward pass
             outputs = model(inputs)
 
             # Compute loss
             loss = criterion(outputs, labels)
 
-            # Backward pass
             loss.backward()
 
-            # Update weights
             optimizer.step()
 
-            # Accumulate loss
             running_loss += loss.item() * inputs.size(0)
 
             # Display progress every 10 batches
             if (batch_idx + 1) % 10 == 0 or (batch_idx + 1) == total_batches:
                 print(f"  Batch {batch_idx+1}/{total_batches} - Loss: {loss.item():.4f}")
 
-        # Print average loss for the epoch
         epoch_loss = running_loss / len(train_loader.dataset)
         print(f"Epoch {epoch+1} completed. Average Loss: {epoch_loss:.4f}")
 
